@@ -1,0 +1,1 @@
+gcloud beta run deploy plugfox-badges-faas --source=. --project=plugfox-badges-faas --port=8080 --args="--port 8080" --concurrency=3 --max-instances=3 --region=europe-west4 --platform managed --timeout=25s --cpu=1 --memory=64Mi --no-use-http2 --allow-unauthenticated
