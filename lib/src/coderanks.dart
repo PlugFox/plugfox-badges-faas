@@ -1,10 +1,11 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:plugfox_badges_faas/src/client.dart';
 
-typedef JsonMap = Map<String, Object?>;
+typedef _CodeRankJson = Map<String, Object?>;
 
+@internal
 Future<Rank> getDartRankFromCodeRank() async {
   const user = 'plugfox';
   const badgesUrl = 'https://api.codersrank.io/v2/users/$user/badges';
@@ -12,22 +13,18 @@ Future<Rank> getDartRankFromCodeRank() async {
   //final historyUrl =
   //    'https://api.codersrank.io/v2/users/$user/tech_score_history?from='
   //    '${from.year}-${from.month.toString().padLeft(2, '0')}-${from.day.toString().padLeft(2, '0')}T00:00:00Z';
-  final client = http.Client();
 
-  http.Response response;
-  JsonMap json;
-  Iterable<Object?> collection;
   // Получим информацию из баджа
-  response = await client
+  final response = await httpClient
       .get(Uri.parse(badgesUrl))
       .timeout(const Duration(seconds: 5));
-  json = jsonDecode(response.body) as JsonMap;
-  collection = json['badges'] as Iterable<Object?>;
+  final json = jsonDecode(response.body) as _CodeRankJson;
+  final collection = json.remove('badges')! as Iterable<Object?>;
   final dartBadge = collection
-      .whereType<JsonMap>()
+      .whereType<_CodeRankJson>()
       .firstWhere((m) => m['language'] == 'Dart');
-  final rank = dartBadge['rank'] as int;
-  final location = dartBadge['location_name'] as String;
+  final rank = dartBadge['rank']! as int;
+  final location = dartBadge['location_name']! as String;
 
   // Получим информацию из истории
   //response = await client
@@ -44,6 +41,7 @@ Future<Rank> getDartRankFromCodeRank() async {
   //            )['score'] as double? ??
   //        .0)
   //    .reduce(math.max);
+
   return Rank(
     location: location,
     language: 'Dart',
@@ -59,14 +57,14 @@ class Rank {
   final double score;
   final String language;
 
-  Rank({
+  const Rank({
     required this.rank,
     required this.location,
     required this.score,
     required this.language,
   });
 
-  JsonMap toJson() => <String, Object>{
+  Map<String, Object> toJson() => <String, Object>{
         'rank': rank,
         'location': location,
         'score': score,
